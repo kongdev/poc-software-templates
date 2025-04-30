@@ -1,4 +1,6 @@
-apiVersion: backstage.io/v1beta2
+# yaml-language-server: $schema=https://json.schemastore.org/yamllint.json
+
+apiVersion: backstage.io/v1beta3
 kind: Template
 # some metadata about the template itself
 metadata:
@@ -28,14 +30,13 @@ spec:
       action: fetch:template
       input:
         url: ./skeleton
-
     - id: publishToGitHub
       name: Publish to GitHub
       action: publish:github
       input:
         allowedHosts: ['github.com']
         # This will be used as the repo description on GitHub.
-        description: 'A static HTML website. Just like the good old days.'
+        description: 'A static HTML website.'
         repoUrl: ${{ parameters.repoUrl }}
         defaultBranch: main
         repoVisibility: public
