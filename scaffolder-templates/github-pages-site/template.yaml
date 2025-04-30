@@ -8,6 +8,7 @@ metadata:
   title: GitHub Pages Website
   description: Create a static HTML website and publish it via GitHub pages.
 spec:
+  owner: my-group-name
   type: website
   # these are the steps which are rendered in the frontend with the form input
   parameters:
