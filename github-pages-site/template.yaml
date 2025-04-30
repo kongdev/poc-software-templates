@@ -1,6 +1,5 @@
-# yaml-language-server: $schema=https://json.schemastore.org/yamllint.json
-
 apiVersion: scaffolder.backstage.io/v1beta3
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
 kind: Template
 # some metadata about the template itself
 metadata:
@@ -8,10 +7,21 @@ metadata:
   title: GitHub Pages Website
   description: Create a static HTML website and publish it via GitHub pages.
 spec:
-  owner: my-group-name
+  owner: user:guest
   type: website
   # these are the steps which are rendered in the frontend with the form input
   parameters:
+    - title: Fill in some steps
+      required:
+        - name
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component
+          ui:autofocus: true
+          ui:options:
+            rows: 5
     - title: Choose a location
       required:
         - repoUrl
@@ -26,21 +36,38 @@ spec:
 
   # here's the steps that are executed in series in the scaffolder backend
   steps:
-    - id: template
-      name: Fetch Skeleton + Template
+    # Each step executes an action, in this case one templates files into the working directory.
+    - id: fetch-base
+      name: Fetch Base
       action: fetch:template
       input:
         url: ./skeleton
-    - id: publishToGitHub
-      name: Publish to GitHub
+        values:
+          name: ${{ parameters.name }}
+
+    # This step publishes the contents of the working directory to GitHub.
+    - id: publish
+      name: Publish
       action: publish:github
       input:
         allowedHosts: ['github.com']
-        # This will be used as the repo description on GitHub.
-        description: 'A static HTML website.'
+        description: This is ${{ parameters.name }}
         repoUrl: ${{ parameters.repoUrl }}
-        defaultBranch: main
-        repoVisibility: public
 
+    # The final step is to register our new component in the catalog.
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/template.yaml'    
+
+
+  # Outputs are displayed to the user after a successful execution of the template.
   output:
-    remoteUrl: '{{ steps.publishToGitHub.output.remoteUrl }}'
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
